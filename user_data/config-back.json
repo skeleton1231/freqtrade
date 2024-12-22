@@ -54,13 +54,29 @@
 	"dry_run": true,
 	"log_level": "INFO",
 	"exchange": {
-		"name": "binance",
+		"name": "binanceus",
 		"key": "YOUR_API_KEY",
 		"secret": "YOUR_API_SECRET",
-		"pair_whitelist": [
-			"BTC/USDT"
-		],
-		"pair_blacklist": []
+        "pair_whitelist": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "BNB/USDT",
+            "SOL/USDT",
+            "ADA/USDT",
+            "XRP/USDT",
+            "DOT/USDT",
+            "MATIC/USDT",
+            "LTC/USDT",
+            "SHIB/USDT",
+            "AVAX/USDT",
+            "LINK/USDT",
+            "ATOM/USDT",
+            "UNI/USDT",
+            "FTM/USDT"
+        ],
+        "pair_blacklist": [
+            "DOGE/USDT"
+        ],
 	},
 	"pairlists": [
 		{
