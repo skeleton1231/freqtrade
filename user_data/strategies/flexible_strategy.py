@@ -1,12 +1,9 @@
 import datetime
 import logging
-
 import talib.abstract as ta
 from pandas import DataFrame
 from technical import qtpylib
-
 from freqtrade.strategy import DecimalParameter, IntParameter, IStrategy
-
 
 # Initialize the logger
 logger = logging.getLogger(__name__)
@@ -43,7 +40,15 @@ class FlexibleStrategy(IStrategy):
 
     def informative_pairs(self):
         """Define informative pairs for multi-timeframe analysis."""
-        return [("BTC/USDT", "1h"), ("ETH/USDT", "1h")]
+        # 定义主交易对列表
+        main_pairs = [
+            "BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT", "ADA/USDT",
+            "XRP/USDT", "DOT/USDT", "MATIC/USDT", "LTC/USDT", "SHIB/USDT",
+            "AVAX/USDT", "LINK/USDT", "ATOM/USDT", "UNI/USDT", "FTM/USDT"
+        ]
+        # 根据每个主交易对生成多时间框架配对
+        informative_pairs = [(pair, "1h") for pair in main_pairs]
+        return informative_pairs
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """Populate indicators for the given dataframe."""
@@ -77,8 +82,8 @@ class FlexibleStrategy(IStrategy):
         """Define entry signals."""
         logger.debug(f"Calculating entry trend for pair: {metadata['pair']}")
 
-        # Check max_open_trades using active_trades
-        active_trades = len(self.active_trades)
+        # 获取当前活跃交易数量
+        active_trades = len(self.get_open_trades())
         max_trades_allowed = self.config.get("max_open_trades", 10)
 
         if active_trades >= max_trades_allowed:
