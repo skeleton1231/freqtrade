@@ -11,10 +11,12 @@ logger.setLevel(logging.DEBUG)  # DEBUG日志，便于分析
 
 class FlexibleStrategy(IStrategy):
     """
-    示例策略（已移除volume过滤）：
-    - 以Hyperopt参考参数构建
-    - 不使用成交量条件（volume 过滤）
-    - 保留自定义止损逻辑 + 全局 stoploss=-0.345
+    示例策略（已移除volume过滤 + 更加宽松的进场条件）：
+    - 降低ADX要求
+    - 提高Buy RSI上限
+    - 减小MACD直方图阈值
+    - 放宽布林线约束 (close < 中轨 * 1.05)
+    - 保留自定义止损逻辑 + 全局stoploss=-0.345
     """
 
     # ----------------------------
@@ -28,26 +30,25 @@ class FlexibleStrategy(IStrategy):
     # 使用自定义止损
     use_custom_stoploss = True
 
-    # 全局固定止损（来自超参结果）
+    # 全局固定止损（假设继承之前Hyperopt结果，或自行设置）
     stoploss = -0.345
 
     # 多时间框架（可按需删除）
     informative_timeframes = ["1h"]
 
     # ----------------------------
-    # 可调参区（示例）
-    # 已去除 volume_threshold
+    # 可调参区（更宽松默认值）
     # ----------------------------
-    adx_threshold = IntParameter(10, 35, default=32, optimize=True, space="buy")
-    buy_rsi       = IntParameter(20, 60, default=37, optimize=True, space="buy")
-    macd_hist_threshold = DecimalParameter(0.0, 0.5, default=0.4, optimize=True, space="buy")
+    # 降低ADX阈值
+    adx_threshold = IntParameter(5, 35, default=15, optimize=True, space="buy")
+    # 提高RSI上限
+    buy_rsi       = IntParameter(20, 70, default=50, optimize=True, space="buy")
+    # MACD直方图阈值大幅下调
+    macd_hist_threshold = DecimalParameter(0.0, 0.5, default=0.05, optimize=True, space="buy")
 
-    # 仍可保留卖出 RSI
+    # 卖出RSI 可以保持原先，也可以再低/再高看你需求
     sell_rsi = IntParameter(50, 80, default=74, optimize=True, space="sell")
 
-    # ----------------------------
-    # 多时间框架对
-    # ----------------------------
     def informative_pairs(self):
         """
         若需要多时间框架，定义在这里。
@@ -93,18 +94,20 @@ class FlexibleStrategy(IStrategy):
         return dataframe
 
     # ----------------------------
-    # 买入逻辑（无volume过滤）
+    # 买入逻辑（更宽松）
     # ----------------------------
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         logger.debug(f"Calculating entry trend for pair: {metadata['pair']}")
         dataframe.loc[:, "enter_long"] = 0
 
+        # 将 “close < bb_middleband” 改为 “close < bb_middleband * 1.05”
+        # 让价格稍微穿过中轨后仍可能开多
         dataframe.loc[
             (
                 (dataframe["rsi"] < self.buy_rsi.value)
                 & (dataframe["adx"] > self.adx_threshold.value)
                 & (dataframe["macdhist"] > self.macd_hist_threshold.value)
-                & (dataframe["close"] < dataframe["bb_middleband"])
+                & (dataframe["close"] < dataframe["bb_middleband"] * 1.05)
             ),
             "enter_long"
         ] = 1
@@ -151,13 +154,12 @@ class FlexibleStrategy(IStrategy):
             atr = dataframe["atr"].iloc[-1]
             atr_mean = dataframe["atr"].rolling(20).mean().iloc[-1]
 
-            # 若波动率远高于均值 => -0.20
+            # 若波动率远高于均值 => -0.20 (比-0.345更小绝对值 =>更宽松)
             if atr > atr_mean * 1.5:
-                stoploss = -0.20  # 相对 -0.345 更小绝对值(=-20%)，=>更宽松
+                stoploss = -0.20
 
             # 如果盈利>10% => 收紧
             if current_profit > 0.10:
-                # 计算一个基于ATR的止损
                 stop = - (atr / current_rate * 1.5)
                 stoploss = max(stoploss, stop)
 
