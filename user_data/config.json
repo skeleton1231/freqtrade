@@ -123,7 +123,6 @@
         "pair_whitelist": [
             "BTC/USDT",
             "ETH/USDT",
-            "BNB/USDT",
             "SOL/USDT",
             "ADA/USDT",
             "XRP/USDT",
@@ -133,9 +132,7 @@
             "SHIB/USDT",
             "AVAX/USDT",
             "LINK/USDT",
-            "ATOM/USDT",
-            "UNI/USDT",
-            "FTM/USDT"
+            "ATOM/USDT"
         ],
         "pair_blacklist": [
             "DOGE/USDT"

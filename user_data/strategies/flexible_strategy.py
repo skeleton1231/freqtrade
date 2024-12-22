@@ -55,9 +55,9 @@ class FlexibleStrategy(IStrategy):
         如果不想用多TF，可删除本方法 + informative_timeframes。
         """
         main_pairs = [
-            "BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT", "ADA/USDT",
+            "BTC/USDT", "ETH/USDT", "SOL/USDT", "ADA/USDT",
             "XRP/USDT", "DOT/USDT", "MATIC/USDT", "LTC/USDT", "SHIB/USDT",
-            "AVAX/USDT", "LINK/USDT", "ATOM/USDT", "UNI/USDT", "FTM/USDT"
+            "AVAX/USDT", "LINK/USDT", "ATOM/USDT",
         ]
         # 获取这些对的1h级别数据
         return [(pair, "1h") for pair in main_pairs]
