@@ -1,0 +1,82 @@
+{
+	"version": 3,
+	"max_open_trades": 10,
+	"stake_currency": "USDT",
+	"stake_amount": 1000,
+	"startup_candle_count": 200,
+	"order_types": {
+		"entry": "limit",
+		"exit": "limit",
+		"stoploss": "market",
+		"stoploss_on_exchange": false
+	},
+	"order_time_in_force": {
+		"entry": "GTC",
+		"exit": "GTC"
+	},
+	"process_only_new_candles": true,
+	"use_exit_signal": true,
+	"exit_profit_only": false,
+	"ignore_roi_if_entry_signal": false,
+	"exit_profit_offset": 0.0,
+	"disable_dataframe_checks": false,
+	"ignore_buying_expired_candle_after": 0,
+	"position_adjustment_enable": false,
+	"max_entry_position_adjustment": -1,
+	"unfilledtimeout": {
+		"entry": 10,
+		"exit": 30
+	},
+    "entry_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0
+    },
+    "exit_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0
+    },
+	// "minimal_roi": {
+	// 	""
+	// 	"0": 0.12
+	// },
+	"stoploss": -0.05,
+	"trailing_stop": false,
+	"trailing_stop_positive_offset": 0.48,
+	"trailing_stop_positive": 0.32,
+    "trailing_stop_maximum": 0.6,
+	"trailing_only_offset_is_reached": false,
+	"use_custom_stoploss": false,
+	"timeframe": "5m",
+	"dry_run": true,
+	"log_level": "INFO",
+	"exchange": {
+		"name": "binance",
+		"key": "YOUR_API_KEY",
+		"secret": "YOUR_API_SECRET",
+		"pair_whitelist": [
+			"BTC/USDT"
+		],
+		"pair_blacklist": []
+	},
+	"pairlists": [
+		{
+			"method": "StaticPairList",
+			"pairs": ["BTC/USDT"]
+		}
+	],
+	"logging": {
+		"logfile": "freqtrade.log",
+		"loglevel": "INFO"
+	},
+	"update_frequency": 5,
+	"dry_run_wallet": 20000,
+	"verbosity": 2,
+    "db_url": "sqlite:///tradesv3.sqlite",
+    "strategy": "FlexibleStrategy",
+    "strategy_path": "user_data/strategies/"
+
+}
