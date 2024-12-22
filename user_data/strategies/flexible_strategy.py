@@ -21,14 +21,6 @@ class FlexibleStrategy(IStrategy):
 
     # Strategy settings
     can_short = False
-    minimal_roi = {
-        "180": 0.03,
-        "120": 0.06,
-        "60": 0.08,
-        "0": 0.12,
-    }
-    timeframe = "5m"
-    startup_candle_count = 200
     informative_timeframes = ["1h"]
 
     # Parameter optimization
@@ -81,16 +73,6 @@ class FlexibleStrategy(IStrategy):
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """Define entry signals."""
         logger.debug(f"Calculating entry trend for pair: {metadata['pair']}")
-
-        # 获取当前活跃交易数量
-        active_trades = len(self.get_open_trades())
-        max_trades_allowed = self.config.get("max_open_trades", 10)
-
-        if active_trades >= max_trades_allowed:
-            logger.debug(
-                f"Max open trades reached: {active_trades}/{max_trades_allowed}. Skipping entry signal."
-            )
-            return dataframe
 
         dataframe.loc[
             (
