@@ -38,6 +38,7 @@ services:
 
 # docker run -d --name freqtrade \
 #    -v $(pwd)/user_data:/freqtrade/user_data \
-#    -p 8080:8080 \
+#    -p 0.0.0.0:8080:8080 \
 #    freqtradeorg/freqtrade:stable trade --config /freqtrade/user_data/config.json
+
 
