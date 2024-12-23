@@ -16,6 +16,7 @@ from freqtrade.strategy import (
     informative,  # @informative decorator
     # Hyperopt Parameters
     BooleanParameter,
+    
     CategoricalParameter,
     DecimalParameter,
     IntParameter,

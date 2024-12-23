@@ -176,6 +176,6 @@
     "bot_name": "freqtrade",
     "db_url": "sqlite:///tradesv3.sqlite",
     "initial_state": "running",
-    "strategy": "SampleStrategy",
+    "strategy": "FlexibleStrategy",
     "strategy_path": "user_data/strategies/"
 }
