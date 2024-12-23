@@ -174,7 +174,7 @@
         "heartbeat_interval": 60
     },
     "bot_name": "freqtrade2",
-    "db_url": "sqlite:///tradesv3.sqlite",
+    "db_url": "sqlite:///tradesv3.freqtrade2.sqlite",
     "initial_state": "running",
     "strategy": "SampleStrategy",
     "strategy_path": "user_data/strategies/"

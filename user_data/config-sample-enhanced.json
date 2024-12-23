@@ -185,7 +185,7 @@
   },
 
   "bot_name": "freqtrade3",
-  "db_url": "sqlite:///tradesv3.sqlite",
+  "db_url": "sqlite:///tradesv3.freqtrade3.sqlite",
   "initial_state": "running",
   // 注意这里使用下面的策略名字
   "strategy": "SampleStrategyEnhanced",
