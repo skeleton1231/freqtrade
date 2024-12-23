@@ -1,13 +1,13 @@
 {
     "$schema": "https://schema.freqtrade.io/schema.json",
-    "max_open_trades": 1,
+    "max_open_trades": 10,
     "stake_currency": "USDT",
-    "stake_amount": 50,
+    "stake_amount": 10000,
     "tradable_balance_ratio": 0.99,
     "fiat_display_currency": "USD",
     "amount_reserve_percent": 0.05,
     "dry_run": true,
-    "dry_run_wallet": 1000,
+    "dry_run_wallet": 100000,
     "cancel_open_orders_on_exit": false,
     "timeframe": "5m",
     "trailing_stop": false,
@@ -57,7 +57,7 @@
         "force_exit": "market",
         "force_entry": "market",
         "stoploss": "market",
-        "stoploss_on_exchange": true,
+        "stoploss_on_exchange": false,
         "stoploss_price_type": "last",
         "stoploss_on_exchange_interval": 60,
         "stoploss_on_exchange_limit_ratio": 0.99
@@ -72,38 +72,38 @@
         },
         {
             "method": "FullTradesFilter"
+        },
+        {
+            "method": "VolumePairList",
+            "number_assets": 20,
+            "sort_key": "quoteVolume",
+            "refresh_period": 1800
+        },
+        {
+            "method": "AgeFilter",
+            "min_days_listed": 10
+        },
+        {
+            "method": "PrecisionFilter"
+        },
+        {
+            "method": "PriceFilter",
+            "low_price_ratio": 0.01,
+            "min_price": 0.00000010
+        },
+        {
+            "method": "SpreadFilter",
+            "max_spread_ratio": 0.005
+        },
+        {
+            "method": "RangeStabilityFilter",
+            "lookback_days": 10,
+            "min_rate_of_change": 0.01,
+            "refresh_period": 1440
         }
-        // {
-        //     "method": "VolumePairList",
-        //     "number_assets": 20,
-        //     "sort_key": "quoteVolume",
-        //     "refresh_period": 1800
-        // },
-        // {
-        //     "method": "AgeFilter",
-        //     "min_days_listed": 10
-        // },
-        // {
-        //     "method": "PrecisionFilter"
-        // },
-        // {
-        //     "method": "PriceFilter",
-        //     "low_price_ratio": 0.01,
-        //     "min_price": 0.00000010
-        // },
-        // {
-        //     "method": "SpreadFilter",
-        //     "max_spread_ratio": 0.005
-        // },
-        // {
-        //     "method": "RangeStabilityFilter",
-        //     "lookback_days": 10,
-        //     "min_rate_of_change": 0.01,
-        //     "refresh_period": 1440
-        // }
     ],
     "exchange": {
-        "name": "kraken",
+        "name": "binance",
         "key": "your_exchange_key",
         "secret": "your_exchange_secret",
         "password": "",
@@ -176,6 +176,6 @@
     "bot_name": "freqtrade",
     "db_url": "sqlite:///tradesv3.sqlite",
     "initial_state": "running",
-    "strategy": "FlexibleStrategy",
+    "strategy": "SampleStrategy",
     "strategy_path": "user_data/strategies/"
 }

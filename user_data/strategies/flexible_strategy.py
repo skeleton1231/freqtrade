@@ -28,7 +28,7 @@ class FlexibleStrategy(IStrategy):
     can_short = False
 
     # 使用自定义止损
-    use_custom_stoploss = True
+    use_custom_stoploss = False
 
     # 全局固定止损（假设继承之前Hyperopt结果，或自行设置）
     stoploss = -0.345
