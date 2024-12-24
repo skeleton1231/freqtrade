@@ -1,4 +1,4 @@
-from typing import dict
+from typing import Dict
 
 import talib.abstract as ta
 from pandas import DataFrame
@@ -39,7 +39,7 @@ class SampleStrategyEnhanced(IStrategy):
     # 启动需要的蜡烛数量
     startup_candle_count = 200
 
-    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+    def populate_indicators(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
         """
         添加指标：
           - RSI
