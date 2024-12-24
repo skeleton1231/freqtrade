@@ -1,62 +1,55 @@
-# user_data/strategies/SampleStrategyEnhanced.py
+from typing import dict
 
-from typing import Dict
-
-import numpy as np
-import pandas as pd
 import talib.abstract as ta
 from pandas import DataFrame
 from technical import qtpylib
 
 from freqtrade.persistence import Trade
 from freqtrade.strategy import (
-    DecimalParameter,
     IntParameter,
     IStrategy,
-    merge_informative_pair,
-    stoploss_from_open,
 )
 
 
 class SampleStrategyEnhanced(IStrategy):
     """
-    改进版示例策略:
-      - 仅做多
-      - 适度放宽 RSI 阈值
-      - 用 Bollinger + TEMA 参考
-      - 可选: 自定义止损 (ATR-based)
+    改进版策略：
+      - 在达到 timeout 时，只要有利润，就卖出。
+      - ROI 标准依然适用。
     """
 
     INTERFACE_VERSION = 3
 
     can_short = False
 
-    # 使用自定义止损?
-    use_custom_stoploss = False  # 若想开启ATR止损,就设True并写 custom_stoploss()
+    # 不使用 trailing_stop
+    trailing_stop = False
 
-    # 全局固定止损(跟 config 保持一致):
+    # 全局固定止损 (不考虑止损情况)
     stoploss = -0.10
 
-    # ROI 在 config 里已经设置 minimal_roi
-
+    # ROI 在 config 中 minimal_roi 设定
     timeframe = "5m"
     process_only_new_candles = True
-
-    # 不使用 trailing_stop, 如果想启用看config
-    trailing_stop = False
 
     # 超参: 让用户可 hyperopt
     buy_rsi = IntParameter(low=10, high=50, default=30, space="buy", optimize=True)
     sell_rsi = IntParameter(low=50, high=90, default=70, space="sell", optimize=True)
 
-    # startup
+    # 启动需要的蜡烛数量
     startup_candle_count = 200
 
-    def populate_indicators(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        添加指标：
+          - RSI
+          - Bollinger Bands
+          - TEMA
+        """
         # RSI
         dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
 
-        # Bollinger
+        # Bollinger Bands
         boll = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=20, stds=2)
         dataframe["bb_lowerband"] = boll["lower"]
         dataframe["bb_middleband"] = boll["mid"]
@@ -69,25 +62,29 @@ class SampleStrategyEnhanced(IStrategy):
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
         """
-        入场: RSI 从下往上突破 buy_rsi & TEMA < 中轨 & TEMA上升
+        入场逻辑：
+          - RSI 从下往上突破买入阈值 (buy_rsi)
+          - TEMA 在布林中轨以下且向上
         """
         dataframe.loc[:, "enter_long"] = 0
 
-        # RSI crossed above buy_rsi
         dataframe.loc[
             (
                 qtpylib.crossed_above(dataframe["rsi"], self.buy_rsi.value)
                 & (dataframe["tema"] < dataframe["bb_middleband"])
-                & (dataframe["tema"] > dataframe["tema"].shift(1))
+                & (dataframe["tema"] > dataframe["tema"].shift(1))  # TEMA 上升
             ),
-            "enter_long"
+            "enter_long",
         ] = 1
 
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
         """
-        出场: RSI crosses above sell_rsi & TEMA>中轨 & TEMA向下
+        出场逻辑：
+          - 达到标准 ROI 条件
+          - RSI 从下往上突破卖出阈值 (sell_rsi)
+          - TEMA 在布林中轨以上且向下
         """
         dataframe.loc[:, "exit_long"] = 0
 
@@ -95,32 +92,28 @@ class SampleStrategyEnhanced(IStrategy):
             (
                 qtpylib.crossed_above(dataframe["rsi"], self.sell_rsi.value)
                 & (dataframe["tema"] > dataframe["bb_middleband"])
-                & (dataframe["tema"] < dataframe["tema"].shift(1))
+                & (dataframe["tema"] < dataframe["tema"].shift(1))  # TEMA 下降
             ),
-            "exit_long"
+            "exit_long",
         ] = 1
 
         return dataframe
 
-    # 可选自定义止损
-    # def custom_stoploss(self, pair: str, trade: Trade, current_time, current_rate, current_profit, **kwargs) -> float:
-    #     """
-    #     示例: 当行情波动(ATR)过大时容忍度更高, 以避免被洗; 当已盈利时收紧止损等.
-    #     """
-    #     default_stop = self.stoploss  # -0.10
-    #
-    #     # 取当前 dataframe
-    #     dataframe, _ = self.dp.get_analyzed_dataframe(pair=pair, timeframe=self.timeframe)
-    #     if dataframe is None or dataframe.empty:
-    #         return default_stop
-    #
-    #     # 例如计算14日ATR
-    #     atr = ta.ATR(dataframe, timeperiod=14).iloc[-1]
-    #     # 你可拿atr / current_rate来算额外容忍...
-    #
-    #     # 简单示例, 当盈利>5%时收紧止损到 -3%
-    #     if current_profit > 0.05:
-    #         return max(default_stop, -0.03)
-    #
-    #     # 否则用默认-10%
-    #     return default_stop
+    def custom_stoploss(
+        self, pair: str, trade: Trade, current_time, current_rate, current_profit, **kwargs
+    ) -> float:
+        """
+        自定义退出逻辑：
+        - 到达 timeout 时，只要有利润就退出。
+        """
+        # 默认使用配置中的 stoploss 值
+        default_stop = self.stoploss  # 默认 -10%
+
+        # 检查 trade 是否达到 timeout
+        timeout_reached = (current_time - trade.open_date_utc).total_seconds() / 60 >= trade.open_order_timeout
+        if timeout_reached and current_profit > 0:
+            # 如果超时并且有利润，立即退出
+            return 0  # 当前价格触发退出
+
+        # 否则，保持默认止损
+        return default_stop
