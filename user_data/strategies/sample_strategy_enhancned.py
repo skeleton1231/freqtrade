@@ -1,21 +1,17 @@
 from typing import Dict
-
-import talib.abstract as ta
 from pandas import DataFrame
-from technical import qtpylib
-
+import talib.abstract as ta
+from freqtrade.strategy import IStrategy, IntParameter
 from freqtrade.persistence import Trade
-from freqtrade.strategy import (
-    IntParameter,
-    IStrategy,
-)
+from technical import qtpylib
 
 
 class SampleStrategyEnhanced(IStrategy):
     """
     改进版策略：
-      - 在达到 timeout 时，只要有利润，就卖出。
-      - ROI 标准依然适用。
+      - 在超时时，检查最小利润阈值（如 0.5%）。
+      - ROI 标准仍然适用。
+      - 根据市场趋势决定是否持有或退出。
     """
 
     INTERFACE_VERSION = 3
@@ -26,7 +22,7 @@ class SampleStrategyEnhanced(IStrategy):
     trailing_stop = False
 
     # 全局固定止损 (不考虑止损情况)
-    stoploss = -0.03
+    stoploss = -0.03  # 默认止损
 
     # ROI 在 config 中 minimal_roi 设定
     timeframe = "5m"
@@ -106,16 +102,20 @@ class SampleStrategyEnhanced(IStrategy):
         自定义退出逻辑：
         - 到达 timeout 时，只要有利润就退出。
         """
-        # 默认使用配置中的 stoploss 值
-        default_stop = self.stoploss  # 默认 -10%
-
-        # 检查 trade 是否达到 timeout
+        default_stop = self.stoploss
         timeout_reached = (
             current_time - trade.open_date_utc
         ).total_seconds() / 60 >= trade.open_order_timeout
-        if timeout_reached and current_profit > 0:
-            # 如果超时并且有利润，立即退出
-            return 0  # 当前价格触发退出
 
-        # 否则，保持默认止损
+        # 超时逻辑改进
+        if timeout_reached and current_profit > 0.005:  # 至少 0.5% 利润
+            return 0  # 立即退出
+
+        # 检查市场趋势（例如 1 小时级别 EMA）
+        dataframe, _ = self.dp.get_analyzed_dataframe(pair=pair, timeframe="1h")
+        if dataframe is not None and not dataframe.empty:
+            ema_trend = dataframe["close"].iloc[-1] > dataframe["ema50"].iloc[-1]
+            if timeout_reached and current_profit > 0 and not ema_trend:
+                return 0  # 如果趋势不利且超时，立即退出
+
         return default_stop
