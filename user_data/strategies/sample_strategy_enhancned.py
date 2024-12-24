@@ -26,7 +26,7 @@ class SampleStrategyEnhanced(IStrategy):
     trailing_stop = False
 
     # 全局固定止损 (不考虑止损情况)
-    stoploss = -0.10
+    stoploss = -0.03
 
     # ROI 在 config 中 minimal_roi 设定
     timeframe = "5m"
@@ -110,7 +110,9 @@ class SampleStrategyEnhanced(IStrategy):
         default_stop = self.stoploss  # 默认 -10%
 
         # 检查 trade 是否达到 timeout
-        timeout_reached = (current_time - trade.open_date_utc).total_seconds() / 60 >= trade.open_order_timeout
+        timeout_reached = (
+            current_time - trade.open_date_utc
+        ).total_seconds() / 60 >= trade.open_order_timeout
         if timeout_reached and current_profit > 0:
             # 如果超时并且有利润，立即退出
             return 0  # 当前价格触发退出
