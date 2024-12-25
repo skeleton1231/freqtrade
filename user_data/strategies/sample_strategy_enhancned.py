@@ -30,13 +30,18 @@ class SampleStrategyEnhanced(IStrategy):
     process_only_new_candles = True
     use_custom_stoploss = True
 
+    # Declare additional timeframes
+    additional_timeframes = ["1h"]
+
     # Hyperparameters for optimization
     buy_rsi = IntParameter(low=10, high=50, default=30, space="buy", optimize=True)
     sell_rsi = IntParameter(low=50, high=90, default=70, space="sell", optimize=True)
 
     # Parameterized timeout and minimum profit
     timeout_minutes = IntParameter(low=30, high=120, default=60, space="custom", optimize=True)
-    min_profit = DecimalParameter(low=0.001, high=0.01, decimals=4, default=0.005, space="custom", optimize=True)
+    min_profit = DecimalParameter(
+        low=0.001, high=0.01, decimals=4, default=0.005, space="custom", optimize=True
+    )
 
     # Required number of candles before strategy starts
     startup_candle_count = 200
@@ -57,7 +62,7 @@ class SampleStrategyEnhanced(IStrategy):
         - RSI
         - Bollinger Bands
         - TEMA
-        - EMA50
+        - EMA50 (for both main and additional timeframes)
         """
         # RSI
         dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
@@ -71,10 +76,23 @@ class SampleStrategyEnhanced(IStrategy):
         # TEMA
         dataframe["tema"] = ta.TEMA(dataframe, timeperiod=9)
 
-        # EMA50
+        # EMA50 for main timeframe
         dataframe["ema50"] = ta.EMA(dataframe, timeperiod=50)
 
-        self.logger.debug(f"Indicators populated for metadata: {metadata}")
+        self.logger.debug(f"Indicators populated for main timeframe: {metadata}")
+
+        return dataframe
+
+    def populate_indicators_1h(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
+        """
+        Add indicators for the 1-hour timeframe:
+        - EMA50
+        """
+        # EMA50 for 1h timeframe
+        dataframe["ema50_1h"] = ta.EMA(dataframe, timeperiod=50)
+
+        self.logger.debug(f"Indicators populated for 1h timeframe: {metadata}")
+
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
@@ -144,19 +162,26 @@ class SampleStrategyEnhanced(IStrategy):
             )
             return default_stop
 
-        # 获取1小时图的分析数据
-        dataframe, _ = self.dp.get_analyzed_dataframe(pair=pair, timeframe="1h")
-        if dataframe is None or dataframe.empty:
-            self.logger.error(f"[Custom Stoploss] Failed to retrieve 1h dataframe for {pair}. Holding position.")
-            return default_stop
-
+        # Attempt to retrieve 1h dataframe
         try:
-            ema_trend = dataframe["close"].iloc[-1] > dataframe["ema50"].iloc[-1]
+            # 获取最新的 1h 数据
+            dataframe = self.dp.get_pair_dataframe(pair=pair, timeframe="1h")
+            if dataframe is None or dataframe.empty:
+                raise ValueError("1h dataframe is None or empty.")
+
+            # 计算 EMA50 如果尚未计算
+            if "ema50_1h" not in dataframe.columns:
+                dataframe["ema50_1h"] = ta.EMA(dataframe, timeperiod=50)
+
+            ema_trend = dataframe["close"].iloc[-1] > dataframe["ema50_1h"].iloc[-1]
             self.logger.info(
-                f"[Custom Stoploss] Pair: {pair} | EMA Trend: {'Favorable' if ema_trend else 'Unfavorable'}"
+                f"[Custom Stoploss] Pair: {pair} | EMA Trend (1h): {'Favorable' if ema_trend else 'Unfavorable'}"
             )
-        except KeyError as e:
-            self.logger.error(f"[Custom Stoploss] Missing indicator {e} for pair {pair}. Holding position.")
+
+        except Exception as e:
+            self.logger.error(
+                f"[Custom Stoploss] Error retrieving or processing 1h dataframe for {pair}: {e}. Holding position."
+            )
             return default_stop
 
         # 如果超时且趋势不利，立即退出
