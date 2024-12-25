@@ -36,9 +36,9 @@ services:
       --strategy SampleStrategy
 
 
-# docker run -d --name freqtrade \
+# docker run -d --name freqtrade2 \
 #    -v $(pwd)/user_data:/freqtrade/user_data \
-#    -p 0.0.0.0:8080:8080 \
-#    freqtradeorg/freqtrade:stable trade --config /freqtrade/user_data/config.json
+#    -p 0.0.0.0:8081:8081 \
+#    freqtradeorg/freqtrade:stable trade --config /freqtrade/user_data/config-complex.json
 
 

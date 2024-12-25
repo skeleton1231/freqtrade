@@ -7,14 +7,13 @@ from freqtrade.persistence import Trade
 from technical import qtpylib
 from decimal import Decimal
 
-
 class ComplexStrategy(IStrategy):
     """
     Enhanced strategy:
     - Exit immediately if timeout is reached and the trend is unfavorable.
     - ROI standards still apply.
     - Stay in trades with favorable trends even after timeout.
-    - Considers both slippage and fees in profit calculations and stoploss logic.
+    - Considers both slippage and fees in the calculations.
     """
 
     INTERFACE_VERSION = 3
