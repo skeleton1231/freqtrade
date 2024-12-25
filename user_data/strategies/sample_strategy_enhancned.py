@@ -6,7 +6,6 @@ from freqtrade.strategy import IStrategy, IntParameter, DecimalParameter
 from freqtrade.persistence import Trade
 from technical import qtpylib
 
-
 class SampleStrategyEnhanced(IStrategy):
     """
     Enhanced strategy:
@@ -39,9 +38,7 @@ class SampleStrategyEnhanced(IStrategy):
 
     # Parameterized timeout and minimum profit
     timeout_minutes = IntParameter(low=30, high=120, default=60, space="custom", optimize=True)
-    min_profit = DecimalParameter(
-        low=0.001, high=0.01, decimals=4, default=0.005, space="custom", optimize=True
-    )
+    min_profit = DecimalParameter(low=0.001, high=0.01, decimals=4, default=0.005, space="custom", optimize=True)
 
     # Required number of candles before strategy starts
     startup_candle_count = 200
@@ -62,7 +59,7 @@ class SampleStrategyEnhanced(IStrategy):
         - RSI
         - Bollinger Bands
         - TEMA
-        - EMA50 (for both main and additional timeframes)
+        - EMA50 (for main timeframe)
         """
         # RSI
         dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
@@ -80,7 +77,6 @@ class SampleStrategyEnhanced(IStrategy):
         dataframe["ema50"] = ta.EMA(dataframe, timeperiod=50)
 
         self.logger.debug(f"Indicators populated for main timeframe: {metadata}")
-
         return dataframe
 
     def populate_indicators_1h(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
@@ -92,7 +88,6 @@ class SampleStrategyEnhanced(IStrategy):
         dataframe["ema50_1h"] = ta.EMA(dataframe, timeperiod=50)
 
         self.logger.debug(f"Indicators populated for 1h timeframe: {metadata}")
-
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
@@ -180,9 +175,24 @@ class SampleStrategyEnhanced(IStrategy):
 
         except Exception as e:
             self.logger.error(
-                f"[Custom Stoploss] Error retrieving or processing 1h dataframe for {pair}: {e}. Holding position."
+                f"[Custom Stoploss] Error retrieving or processing 1h dataframe for {pair}: {e}. Attempting to use main timeframe EMA."
             )
-            return default_stop
+            # 尝试使用主时间框架的 EMA50 作为趋势判断
+            try:
+                dataframe = self.dp.get_pair_dataframe(pair=pair, timeframe=self.timeframe)
+                if dataframe is None or dataframe.empty:
+                    raise ValueError("Main timeframe dataframe is None or empty.")
+
+                ema_trend_main = dataframe["close"].iloc[-1] > dataframe["ema50"].iloc[-1]
+                self.logger.info(
+                    f"[Custom Stoploss] Pair: {pair} | EMA Trend (main timeframe): {'Favorable' if ema_trend_main else 'Unfavorable'}"
+                )
+                ema_trend = ema_trend_main
+            except Exception as e_main:
+                self.logger.error(
+                    f"[Custom Stoploss] Error retrieving or processing main timeframe dataframe for {pair}: {e_main}. Holding position."
+                )
+                return default_stop
 
         # 如果超时且趋势不利，立即退出
         if current_profit > 0 and not ema_trend:
