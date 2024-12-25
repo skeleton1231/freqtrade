@@ -40,7 +40,7 @@ class SampleStrategyEnhanced(IStrategy):
     # Parameterized timeout and minimum profit
     timeout_minutes = IntParameter(low=30, high=120, default=60, space="custom", optimize=True)
     min_profit = DecimalParameter(
-        low=0.005, high=0.03, decimals=4, default=0.0075, space="custom", optimize=True
+        low=0.002, high=0.01, decimals=4, default=0.005, space="custom", optimize=True
     )
 
     # Required number of candles before strategy starts

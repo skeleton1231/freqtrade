@@ -7,6 +7,7 @@ from freqtrade.persistence import Trade
 from technical import qtpylib
 from decimal import Decimal
 
+
 class ComplexStrategy(IStrategy):
     """
     Enhanced strategy:
@@ -46,11 +47,13 @@ class ComplexStrategy(IStrategy):
     )
 
     # Parameterized slippage
-    slippage = DecimalParameter(0.0, 0.005, decimals=4, default=0.001, space="risk", optimize=True)  # 0.1%
+    slippage = DecimalParameter(
+        0.0, 0.005, decimals=4, default=0.001, space="risk", optimize=True
+    )  # 0.1%
 
     # Fixed fees for normal users on Binance
-    maker_fee = Decimal('0.001')  # 0.1%
-    taker_fee = Decimal('0.001')  # 0.1%
+    maker_fee = Decimal("0.001")  # 0.1%
+    taker_fee = Decimal("0.001")  # 0.1%
 
     # Required number of candles before strategy starts
     startup_candle_count = 200
@@ -231,12 +234,18 @@ class ComplexStrategy(IStrategy):
 
         # 调整当前利润以考虑滑点和手续费
         # 假设是买入滑点和卖出滑点都需要考虑
-        adjusted_current_rate_buy = self.simulate_slippage(trade.open_rate, is_buy=True, slippage=current_slippage)
-        adjusted_current_rate_sell = self.simulate_slippage(current_rate, is_buy=False, slippage=current_slippage)
+        adjusted_current_rate_buy = self.simulate_slippage(
+            trade.open_rate, is_buy=True, slippage=current_slippage
+        )
+        adjusted_current_rate_sell = self.simulate_slippage(
+            current_rate, is_buy=False, slippage=current_slippage
+        )
 
         # 计算调整后的利润
         # (卖出价格 - 买入价格) * 数量 - 手续费
-        adjusted_profit = (adjusted_current_rate_sell - adjusted_current_rate_buy) * trade.amount - (trade_fee_open + trade_fee_close)
+        adjusted_profit = (
+            adjusted_current_rate_sell - adjusted_current_rate_buy
+        ) * trade.amount - (trade_fee_open + trade_fee_close)
 
         self.logger.info(
             f"[Custom Stoploss] Pair: {pair} | Adjusted Profit: {adjusted_profit:.4f} | "
@@ -276,13 +285,17 @@ class ComplexStrategy(IStrategy):
         """
         if order["side"] == "buy":
             # Apply slippage to buy price
-            order["price"] = self.simulate_slippage(order["price"], is_buy=True, slippage=self.slippage.value)
+            order["price"] = self.simulate_slippage(
+                order["price"], is_buy=True, slippage=self.slippage.value
+            )
             # Calculate and log maker fee
             fee = self.calculate_fees(order["price"] * order["amount"], self.maker_fee)
             self.logger.debug(f"Buy Order Adjusted Price: {order['price']:.4f}, Fee: {fee:.4f}")
         elif order["side"] == "sell":
             # Apply slippage to sell price
-            order["price"] = self.simulate_slippage(order["price"], is_buy=False, slippage=self.slippage.value)
+            order["price"] = self.simulate_slippage(
+                order["price"], is_buy=False, slippage=self.slippage.value
+            )
             # Calculate and log taker fee
             fee = self.calculate_fees(order["price"] * order["amount"], self.taker_fee)
             self.logger.debug(f"Sell Order Adjusted Price: {order['price']:.4f}, Fee: {fee:.4f}")
