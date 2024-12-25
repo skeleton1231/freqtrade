@@ -64,7 +64,7 @@ class SampleStrategyEnhanced(IStrategy):
         # TEMA
         dataframe["tema"] = ta.TEMA(dataframe, timeperiod=9)
 
-        self.logger.debug(f"Indicators populated for metadata: {metadata}")  # Debug log
+        self.logger.debug(f"Indicators populated for metadata: {metadata}")
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
@@ -123,8 +123,13 @@ class SampleStrategyEnhanced(IStrategy):
         # Log general stoploss evaluation details
         self.logger.info(
             f"[Custom Stoploss] Pair: {pair} | Timeout: {timeout_reached} | "
-            f"Current Profit: {current_profit:.4f} | Opened Since: {trade.open_date_utc}"
+            f"Profit: {current_profit:.4f} | Current Rate: {current_rate:.4f} | Opened Since: {trade.open_date_utc}"
         )
+
+        # If timeout is not reached, do not exit
+        if not timeout_reached:
+            self.logger.debug(f"[Custom Stoploss] Pair: {pair} | Timeout not reached. Holding position.")
+            return default_stop
 
         # Check market trend (e.g., 1-hour EMA trend)
         dataframe, _ = self.dp.get_analyzed_dataframe(pair=pair, timeframe="1h")
@@ -135,14 +140,14 @@ class SampleStrategyEnhanced(IStrategy):
             )
 
             # If timeout is reached and the trend is unfavorable, exit immediately with any profit
-            if timeout_reached and current_profit > 0 and not ema_trend:
+            if current_profit > 0 and not ema_trend:
                 self.logger.warning(
                     f"[Custom Stoploss] Exiting Pair: {pair} | Unfavorable Trend | Profit: {current_profit:.4f}"
                 )
                 return 0  # Exit immediately
 
         # Timeout reached: Exit with minimum profit if no favorable trend
-        if timeout_reached and current_profit >= 0.005:  # At least 0.5% profit
+        if current_profit >= 0.005:  # At least 0.5% profit
             self.logger.warning(
                 f"[Custom Stoploss] Exiting Pair: {pair} | Timeout Reached | Profit: {current_profit:.4f}"
             )
