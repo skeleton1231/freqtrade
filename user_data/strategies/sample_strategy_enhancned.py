@@ -6,6 +6,7 @@ from freqtrade.strategy import IStrategy, IntParameter, DecimalParameter
 from freqtrade.persistence import Trade
 from technical import qtpylib
 
+
 class SampleStrategyEnhanced(IStrategy):
     """
     Enhanced strategy:
@@ -27,7 +28,7 @@ class SampleStrategyEnhanced(IStrategy):
     # ROI defined in the config as minimal_roi
     timeframe = "5m"
     process_only_new_candles = True
-    use_custom_stoploss = False
+    use_custom_stoploss = True
 
     # Declare additional timeframes
     additional_timeframes = ["1h"]
@@ -38,7 +39,9 @@ class SampleStrategyEnhanced(IStrategy):
 
     # Parameterized timeout and minimum profit
     timeout_minutes = IntParameter(low=30, high=120, default=60, space="custom", optimize=True)
-    min_profit = DecimalParameter(low=0.001, high=0.01, decimals=4, default=0.005, space="custom", optimize=True)
+    min_profit = DecimalParameter(
+        low=0.001, high=0.01, decimals=4, default=0.005, space="custom", optimize=True
+    )
 
     # Required number of candles before strategy starts
     startup_candle_count = 200
