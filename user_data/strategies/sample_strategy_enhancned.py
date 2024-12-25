@@ -108,7 +108,7 @@ class SampleStrategyEnhanced(IStrategy):
         timeout_reached = (current_time - trade.open_date_utc).total_seconds() / 60 >= 60
 
         # 超时逻辑改进
-        if timeout_reached and current_profit > 0.005:  # 至少 0.5% 利润
+        if timeout_reached and current_profit >= 0.005:  # 至少 0.5% 利润
             return 0  # 立即退出
 
         # 检查市场趋势（例如 1 小时级别 EMA）
