@@ -11,9 +11,12 @@
   "cancel_open_orders_on_exit": false,
   "timeframe": "5m",
   "trailing_stop": false,
-  "trailing_stop_positive": 0.005,
-  "trailing_stop_positive_offset": 0.0051,
+  "trailing_stop_positive": 0.01,
+  "trailing_stop_positive_offset": 0.02,
   "trailing_only_offset_is_reached": false,
+  "custom_stoploss": {
+    "enabled": false
+  },
   "use_exit_signal": true,
   "exit_profit_only": false,
   "exit_profit_offset": 0.0,
@@ -22,7 +25,7 @@
   "trading_mode": "spot",
   "margin_mode": "",
   "minimal_roi": {
-    "60": 0.01, // 持有1小时后，满足1%盈利就可卖出
+    "60": 0.01,
     "30": 0.02,
     "0": 0.03
   },

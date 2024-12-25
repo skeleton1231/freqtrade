@@ -17,10 +17,10 @@ class SampleStrategyEnhanced(IStrategy):
 
     INTERFACE_VERSION = 3
 
-    can_short = False
+    # can_short = False
 
     # Disable trailing stop
-    trailing_stop = False
+    # trailing_stop = False
 
     # Global stoploss
     stoploss = -0.03  # Default stoploss
@@ -28,7 +28,7 @@ class SampleStrategyEnhanced(IStrategy):
     # ROI defined in the config as minimal_roi
     timeframe = "5m"
     process_only_new_candles = True
-    use_custom_stoploss = True
+    # use_custom_stoploss = False
 
     # Declare additional timeframes
     additional_timeframes = ["1h"]
