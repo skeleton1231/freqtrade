@@ -27,6 +27,7 @@ class SampleStrategyEnhanced(IStrategy):
     # ROI 在 config 中 minimal_roi 设定
     timeframe = "5m"
     process_only_new_candles = True
+    use_custom_stoploss = True
 
     # 超参: 让用户可 hyperopt
     buy_rsi = IntParameter(low=10, high=50, default=30, space="buy", optimize=True)
