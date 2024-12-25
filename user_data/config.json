@@ -103,7 +103,7 @@
         }
     ],
     "exchange": {
-        "name": "binanceus",
+        "name": "binance",
         "key": "your_exchange_key",
         "secret": "your_exchange_secret",
         "password": "",

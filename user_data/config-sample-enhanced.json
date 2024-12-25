@@ -138,20 +138,20 @@
       "timeout": 30000
     },
     "pair_whitelist": [
-      "BTC/USDT",
-      "ETH/USDT",
-      "SOL/USDT",
-      "ADA/USDT",
-      "XRP/USDT",
-      "DOT/USDT",
-      "MATIC/USDT",
-      "LTC/USDT",
-      "SHIB/USDT",
-      "AVAX/USDT",
-      "LINK/USDT",
-      "ATOM/USDT"
+      "BTC/USD",
+      "ETH/USD",
+      "SOL/USD",
+      "ADA/USD",
+      "XRP/USD",
+      "DOT/USD",
+      "MATIC/USD",
+      "LTC/USD",
+      "SHIB/USD",
+      "AVAX/USD",
+      "LINK/USD",
+      "ATOM/USD"
     ],
-    "pair_blacklist": ["DOGE/USDT"],
+    "pair_blacklist": ["DOGE/USD"],
     "outdated_offset": 5,
     "markets_refresh_interval": 60,
     "enable_ws": false
