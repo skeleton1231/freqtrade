@@ -2,7 +2,7 @@ from typing import Dict
 from pandas import DataFrame
 import logging
 import talib.abstract as ta
-from freqtrade.strategy import IStrategy, IntParameter
+from freqtrade.strategy import IStrategy, IntParameter, DecimalParameter
 from freqtrade.persistence import Trade
 from technical import qtpylib
 
@@ -34,6 +34,10 @@ class SampleStrategyEnhanced(IStrategy):
     buy_rsi = IntParameter(low=10, high=50, default=30, space="buy", optimize=True)
     sell_rsi = IntParameter(low=50, high=90, default=70, space="sell", optimize=True)
 
+    # Parameterized timeout and minimum profit
+    timeout_minutes = IntParameter(low=30, high=120, default=60, space="custom", optimize=True)
+    min_profit = DecimalParameter(low=0.001, high=0.01, decimals=4, default=0.005, space="custom", optimize=True)
+
     # Required number of candles before strategy starts
     startup_candle_count = 200
 
@@ -42,7 +46,9 @@ class SampleStrategyEnhanced(IStrategy):
         Initialize the strategy with proper logging configuration.
         """
         super().__init__(config)
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")  # Logger tied to class name
+        self.logger = logging.getLogger(
+            f"{__name__}.{self.__class__.__name__}"
+        )  # Logger tied to class name
         self.logger.setLevel(logging.DEBUG)  # Set default log level for this strategy
 
     def populate_indicators(self, dataframe: DataFrame, metadata: Dict) -> DataFrame:
@@ -51,6 +57,7 @@ class SampleStrategyEnhanced(IStrategy):
         - RSI
         - Bollinger Bands
         - TEMA
+        - EMA50
         """
         # RSI
         dataframe["rsi"] = ta.RSI(dataframe, timeperiod=14)
@@ -63,6 +70,9 @@ class SampleStrategyEnhanced(IStrategy):
 
         # TEMA
         dataframe["tema"] = ta.TEMA(dataframe, timeperiod=9)
+
+        # EMA50
+        dataframe["ema50"] = ta.EMA(dataframe, timeperiod=50)
 
         self.logger.debug(f"Indicators populated for metadata: {metadata}")
         return dataframe
@@ -117,8 +127,9 @@ class SampleStrategyEnhanced(IStrategy):
         - Stay in position if the trend is favorable, even after timeout.
         """
         default_stop = self.stoploss
-        timeout_minutes = 60  # Timeout duration in minutes
-        timeout_reached = (current_time - trade.open_date_utc).total_seconds() / 60 >= timeout_minutes
+        timeout_reached = (
+            current_time - trade.open_date_utc
+        ).total_seconds() / 60 >= self.timeout_minutes.value
 
         # Log general stoploss evaluation details
         self.logger.info(
@@ -128,31 +139,49 @@ class SampleStrategyEnhanced(IStrategy):
 
         # If timeout is not reached, do not exit
         if not timeout_reached:
-            self.logger.debug(f"[Custom Stoploss] Pair: {pair} | Timeout not reached. Holding position.")
+            self.logger.debug(
+                f"[Custom Stoploss] Pair: {pair} | Timeout not reached. Holding position."
+            )
             return default_stop
 
-        # Check market trend (e.g., 1-hour EMA trend)
+        # 获取1小时图的分析数据
         dataframe, _ = self.dp.get_analyzed_dataframe(pair=pair, timeframe="1h")
-        if dataframe is not None and not dataframe.empty:
+        if dataframe is None or dataframe.empty:
+            self.logger.error(f"[Custom Stoploss] Failed to retrieve 1h dataframe for {pair}. Holding position.")
+            return default_stop
+
+        try:
             ema_trend = dataframe["close"].iloc[-1] > dataframe["ema50"].iloc[-1]
             self.logger.info(
                 f"[Custom Stoploss] Pair: {pair} | EMA Trend: {'Favorable' if ema_trend else 'Unfavorable'}"
             )
+        except KeyError as e:
+            self.logger.error(f"[Custom Stoploss] Missing indicator {e} for pair {pair}. Holding position.")
+            return default_stop
 
-            # If timeout is reached and the trend is unfavorable, exit immediately with any profit
-            if current_profit > 0 and not ema_trend:
-                self.logger.warning(
-                    f"[Custom Stoploss] Exiting Pair: {pair} | Unfavorable Trend | Profit: {current_profit:.4f}"
-                )
-                return 0  # Exit immediately
+        # 如果超时且趋势不利，立即退出
+        if current_profit > 0 and not ema_trend:
+            self.logger.warning(
+                f"[Custom Stoploss] Exiting Pair: {pair} | Unfavorable Trend | Profit: {current_profit:.4f}"
+            )
+            return 0  # 立即退出
 
-        # Timeout reached: Exit with minimum profit if no favorable trend
-        if current_profit >= 0.005:  # At least 0.5% profit
+        # 如果超时且有最低利润，退出
+        if current_profit >= self.min_profit.value:
             self.logger.warning(
                 f"[Custom Stoploss] Exiting Pair: {pair} | Timeout Reached | Profit: {current_profit:.4f}"
             )
-            return 0  # Exit immediately
+            return 0  # 立即退出
 
-        # Default stoploss behavior
-        self.logger.debug(f"[Custom Stoploss] Pair: {pair} | Holding Position | Profit: {current_profit:.4f}")
+        # 如果超时但亏损，强制退出以限制亏损
+        if current_profit < 0:
+            self.logger.warning(
+                f"[Custom Stoploss] Exiting Pair: {pair} | Timeout Reached | Loss: {current_profit:.4f}"
+            )
+            return 0  # 立即退出
+
+        # 默认止损行为
+        self.logger.debug(
+            f"[Custom Stoploss] Pair: {pair} | Holding Position | Profit: {current_profit:.4f}"
+        )
         return default_stop
