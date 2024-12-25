@@ -6,45 +6,33 @@
   "tradable_balance_ratio": 0.99,
   "fiat_display_currency": "USD",
   "amount_reserve_percent": 0.05,
-
   "dry_run": true,
   "dry_run_wallet": 100000,
-
   "cancel_open_orders_on_exit": false,
   "timeframe": "5m",
-
-  // 不使用Trailing stop来简化，若想尝试可以设true
   "trailing_stop": false,
   "trailing_stop_positive": 0.005,
   "trailing_stop_positive_offset": 0.0051,
   "trailing_only_offset_is_reached": false,
-
   "use_exit_signal": true,
   "exit_profit_only": false,
   "exit_profit_offset": 0.0,
   "ignore_roi_if_entry_signal": false,
   "ignore_buying_expired_candle_after": 300,
-
   "trading_mode": "spot",
   "margin_mode": "",
-
-  // （可根据需求微调）
   "minimal_roi": {
-    "60": 0.005, // 持有1小时后，满足1%盈利就可卖出
-    "30": 0.007,
-    "0": 0.01 
+    "60": 0.01, // 持有1小时后，满足1%盈利就可卖出
+    "30": 0.02,
+    "0": 0.03
   },
-
-  // 维持 -3% 止损，后续可加自定义止损
   "stoploss": -0.03,
-
   "unfilledtimeout": {
     "entry": 30, // 给限价单 30 分钟等待成交
     "exit": 10,
     "exit_timeout_count": 0,
     "unit": "minutes"
   },
-
   "entry_pricing": {
     "price_side": "same",
     "use_order_book": true,
@@ -77,7 +65,6 @@
     "entry": "GTC",
     "exit": "GTC"
   },
-
   "pairlists": [
     {
       "method": "StaticPairList"
@@ -118,7 +105,6 @@
       "refresh_period": 1440
     }
   ],
-
   "exchange": {
     "name": "binanceus",
     "key": "your_exchange_key",
@@ -187,7 +173,6 @@
   "bot_name": "freqtrade3-instance",
   "db_url": "sqlite:///tradesv3.freqtrade3.sqlite",
   "initial_state": "running",
-  // 注意这里使用下面的策略名字
   "strategy": "SampleStrategyEnhanced",
   "strategy_path": "user_data/strategies/"
 }
