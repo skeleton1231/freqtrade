@@ -62,6 +62,7 @@ class SampleStrategyEnhanced(IStrategy):
           - RSI 从下往上突破买入阈值 (buy_rsi)
           - TEMA 在布林中轨以下且向上
         """
+
         dataframe.loc[:, "enter_long"] = 0
 
         dataframe.loc[
@@ -103,9 +104,7 @@ class SampleStrategyEnhanced(IStrategy):
         - 到达 timeout 时，只要有利润就退出。
         """
         default_stop = self.stoploss
-        timeout_reached = (
-            current_time - trade.open_date_utc
-        ).total_seconds() / 60 >= trade.open_order_timeout
+        timeout_reached = (current_time - trade.open_date_utc).total_seconds() / 60 >= 60
 
         # 超时逻辑改进
         if timeout_reached and current_profit > 0.005:  # 至少 0.5% 利润
