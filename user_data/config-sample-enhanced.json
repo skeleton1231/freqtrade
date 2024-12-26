@@ -29,7 +29,7 @@
     "30": 0.015,
     "0": 0.01
   },
-  "stoploss": -0.06,
+  "stoploss": -0.1,
   "unfilledtimeout": {
     "entry": 30, // 给限价单 30 分钟等待成交
     "exit": 10,
