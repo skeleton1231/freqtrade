@@ -28,7 +28,7 @@ class SampleStrategyEnhanced(IStrategy):
     # ROI defined in the config as minimal_roi
     timeframe = "5m"
     process_only_new_candles = True
-    # use_custom_stoploss = False
+    use_custom_stoploss = False
 
     # Declare additional timeframes
     additional_timeframes = ["1h"]

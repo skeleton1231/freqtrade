@@ -25,9 +25,9 @@
   "trading_mode": "spot",
   "margin_mode": "",
   "minimal_roi": {
-    "60": 0.02,
-    "30": 0.015,
-    "0": 0.01
+    "60": 0.01,
+    "30": 0.02,
+    "0": 0.03
   },
   "stoploss": -0.20,
   "unfilledtimeout": {
