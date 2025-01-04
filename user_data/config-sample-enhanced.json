@@ -39,7 +39,7 @@
   "entry_pricing": {
     "price_side": "same",
     "use_order_book": true,
-    "order_book_top": 1,
+    "order_book_top": 5,
     "price_last_balance": 0.0,
     "check_depth_of_market": {
       "enabled": false,
@@ -143,7 +143,7 @@
     "pair_blacklist": ["DOGE/USDT"],
     "outdated_offset": 5,
     "markets_refresh_interval": 60,
-    "enable_ws": false
+    "enable_ws": true
   },
 
   "api_server": {
