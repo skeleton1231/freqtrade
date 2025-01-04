@@ -167,12 +167,10 @@
     "remove_entry_exit_signals": false,
     "message_size_limit": 8
   },
-
   "internals": {
     "process_throttle_secs": 5,
     "heartbeat_interval": 60
   },
-
   "bot_name": "freqtrade3-instance",
   "db_url": "sqlite:///tradesv3.freqtrade3.sqlite",
   "initial_state": "running",

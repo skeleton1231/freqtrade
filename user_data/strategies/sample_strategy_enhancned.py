@@ -23,7 +23,7 @@ class SampleStrategyEnhanced(IStrategy):
     # trailing_stop = False
 
     # Global stoploss
-    stoploss = -0.03  # Default stoploss
+    # stoploss = -0.03  # Default stoploss
 
     # ROI defined in the config as minimal_roi
     timeframe = "5m"
