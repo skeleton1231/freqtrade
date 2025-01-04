@@ -17,7 +17,7 @@
   "custom_stoploss": {
     "enabled": false
   },
-  "use_exit_signal": true,
+  "use_exit_signal": false,
   "exit_profit_only": false,
   "exit_profit_offset": 0.0,
   "ignore_roi_if_entry_signal": false,
