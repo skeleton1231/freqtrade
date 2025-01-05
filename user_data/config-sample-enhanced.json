@@ -39,7 +39,7 @@
   "entry_pricing": {
     "price_side": "same",
     "use_order_book": true,
-    "order_book_top": 5,
+    "order_book_top": 10,
     "price_last_balance": 0.0,
     "check_depth_of_market": {
       "enabled": false,
@@ -105,7 +105,7 @@
     }
   ],
   "exchange": {
-    "name": "binanceus",
+    "name": "kraken",
     "key": "your_exchange_key",
     "secret": "your_exchange_secret",
     "password": "",
